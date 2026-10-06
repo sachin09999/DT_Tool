@@ -1,0 +1,89 @@
+[
+  {
+    "id": 310,
+    "name": "Jaipur Office Complex",
+    "description": "Main corporate building and tech hub in Jaipur",
+    "coordinates": {
+      "lon": 75.74598256005991,
+      "lat": 26.91149093801618,
+      "height": 0
+    },
+    "cameraUrl": "",
+    "cameraType": "location_pin"
+  },
+  {
+    "id": 314,
+    "name": "Jaipur-Office Cam1",
+    "description": "View of the north-west entrance corridor",
+    "coordinates": {
+      "lon": 75.745882,
+      "lat": 26.911590,
+      "height": 2.5
+    },
+    "cameraUrl": "rtsp://admin:pass@192.168.1.101:554/stream1",
+    "cameraType": "cctv_camera",
+    "someFutureField": "CONF_SEC_01"
+  },
+  {
+    "id": 315,
+    "name": "Jaipur-Office Cam2",
+    "description": "North-east roof perimeter view",
+    "coordinates": {
+      "lon": 75.746082,
+      "lat": 26.911590,
+      "height": 3.0
+    },
+    "cameraUrl": "rtsp://admin:pass@192.168.1.102:554/stream1",
+    "cameraType": "cctv_camera",
+    "someFutureField": "CONF_SEC_02"
+  },
+  {
+    "id": 316,
+    "name": "Jaipur-Office Cam3",
+    "description": "Central courtyard high dome 360 view",
+    "coordinates": {
+      "lon": 75.745882,
+      "lat": 26.911490,
+      "height": 4.0
+    },
+    "cameraUrl": "http://192.168.1.103/video.m3u8",
+    "cameraType": "360_camera"
+  },
+  {
+    "id": 317,
+    "name": "Jaipur-Office Cam4",
+    "description": "East entrance exit wall mount",
+    "coordinates": {
+      "lon": 75.746082,
+      "lat": 26.911490,
+      "height": 2.2
+    },
+    "cameraUrl": "rtsp://admin:pass@192.168.1.104:554/stream1",
+    "cameraType": "cctv_camera"
+  },
+  {
+    "id": 318,
+    "name": "Jaipur-Office Cam5",
+    "description": "South-west parking zone monitor",
+    "coordinates": {
+      "lon": 75.745882,
+      "lat": 26.911390,
+      "height": 2.8
+    },
+    "cameraUrl": "rtsp://admin:pass@192.168.1.105:554/stream1",
+    "cameraType": "cctv_camera"
+  },
+  {
+    "id": 319,
+    "name": "Jaipur-Office Patrol",
+    "description": "Autonomous pan-tilt-zoom security camera",
+    "coordinates": {
+      "lon": 75.746082,
+      "lat": 26.911390,
+      "height": 3.5
+    },
+    "cameraUrl": "http://192.168.1.106/ptz/control",
+    "cameraType": "pat_camera",
+    "ptzPreset": 4
+  }
+]

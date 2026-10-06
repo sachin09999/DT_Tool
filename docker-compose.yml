@@ -1,0 +1,13 @@
+services:
+  dt-map-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-AIzaSyBA2T0KWXNSj_UmLfIm6JU21Wj8BPyUAic}
+    container_name: dt_map_studio
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:-AIzaSyBA2T0KWXNSj_UmLfIm6JU21Wj8BPyUAic}
+    restart: unless-stopped
