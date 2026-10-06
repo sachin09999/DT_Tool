@@ -10,7 +10,7 @@ import {
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, Compass } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import type {
   BuildingPolygon,
   CameraType,
@@ -18,6 +18,8 @@ import type {
   MapObject,
   ToolMode,
 } from '../types/config';
+import { MapSearchBar } from './MapSearchBar';
+import type { SearchResult } from '../utils/geocoding';
 
 interface MapCanvasProps {
   objects: MapObject[];
@@ -70,22 +72,36 @@ const MapEventsHandler: React.FC<{
   return null;
 };
 
-const MapController: React.FC<{ center: [number, number] }> = ({ center }) => {
+const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
   const map = useMap();
   const prevCenterRef = React.useRef<[number, number] | null>(null);
+  const prevZoomRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     if (center) {
-      if (
+      const isCenterChanged =
         !prevCenterRef.current ||
-        prevCenterRef.current[0] !== center[0] ||
-        prevCenterRef.current[1] !== center[1]
-      ) {
+        Math.abs(prevCenterRef.current[0] - center[0]) > 0.000001 ||
+        Math.abs(prevCenterRef.current[1] - center[1]) > 0.000001;
+
+      const isZoomChanged =
+        prevZoomRef.current !== null &&
+        zoom !== prevZoomRef.current &&
+        Math.abs(map.getZoom() - zoom) > 0.1;
+
+      if (isCenterChanged || isZoomChanged) {
         prevCenterRef.current = center;
-        map.setView(center, map.getZoom());
+        prevZoomRef.current = zoom;
+        map.flyTo(center, zoom, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+      } else {
+        prevCenterRef.current = center;
+        prevZoomRef.current = zoom;
       }
     }
-  }, [center, map]);
+  }, [center, zoom, map]);
   return null;
 };
 
@@ -106,7 +122,6 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
   const [mapZoom, setMapZoom] = useState<number>(19);
   // Default to Pure Satellite Imagery (No Shops, No POIs, ONLY DT Pins)
   const [tileMode, setTileMode] = useState<'google_satellite' | 'google_hybrid' | 'google_roadmap' | 'osm'>('google_satellite');
-  const [searchQuery, setSearchQuery] = useState('');
   const [drawingPoints, setDrawingPoints] = useState<{ lat: number; lon: number }[]>([]);
 
   const prevSelectedIdRef = React.useRef<number | string | null>(null);
@@ -194,18 +209,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.toLowerCase();
-    if (query.includes('jaipur')) {
-      setMapCenter([26.911490938, 75.745982560]);
-      setMapZoom(19);
-    } else if (query.includes('dubai')) {
-      setMapCenter([25.197197, 55.274376]);
-      setMapZoom(18);
-    } else if (query.includes('udaipur')) {
-      setMapCenter([24.585445, 73.712479]);
-      setMapZoom(18);
+  const handleSelectSearchResult = (result: SearchResult) => {
+    setMapCenter([result.lat, result.lon]);
+    setMapZoom(result.zoom);
+    if (result.type === 'object' && result.objectId !== undefined) {
+      onSelectObject(result.objectId);
+    } else if (result.type === 'building' && result.buildingId !== undefined) {
+      onSelectBuilding(result.buildingId);
     }
   };
 
@@ -221,16 +231,11 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden">
       <div className="absolute top-4 right-4 z-[1000] flex items-center space-x-2">
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search location (e.g. Jaipur Office)..."
-            className="bg-dark-800/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 w-64 shadow-xl backdrop-blur-md"
-          />
-        </form>
+        <MapSearchBar
+          objects={objects}
+          buildings={buildings}
+          onSelectLocation={handleSelectSearchResult}
+        />
 
         <div className="flex items-center space-x-1 bg-dark-800/90 border border-slate-700/80 rounded-xl p-1 shadow-xl backdrop-blur-md">
           <select
@@ -245,7 +250,10 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
           </select>
 
           <button
-            onClick={() => setMapCenter([26.911490938, 75.745982560])}
+            onClick={() => {
+              setMapCenter([26.911490938, 75.745982560]);
+              setMapZoom(19);
+            }}
             title="Recenter on Jaipur Office"
             className="p-1.5 rounded-lg hover:bg-slate-700 text-cyan-400 transition-colors"
           >
@@ -274,7 +282,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
         zoomControl={false}
         className="w-full h-full z-10"
       >
-        <MapController center={mapCenter} />
+        <MapController center={mapCenter} zoom={mapZoom} />
 
         <TileLayer
           url={tileUrls[tileMode]}

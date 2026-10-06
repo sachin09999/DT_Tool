@@ -4,7 +4,6 @@ import {
   Camera,
   Video,
   RotateCw,
-  Search,
   ZoomIn,
   ZoomOut,
   Compass,
@@ -17,6 +16,8 @@ import type {
   ToolMode,
 } from '../types/config';
 import { latLonToMeters, metersToLatLon } from '../utils/geo';
+import { MapSearchBar } from './MapSearchBar';
+import type { SearchResult } from '../utils/geocoding';
 
 interface FallbackMapProps {
   objects: MapObject[];
@@ -47,7 +48,6 @@ export const FallbackMap: React.FC<FallbackMapProps> = ({
 }) => {
   const [center, setCenter] = useState({ lat: 26.911490938, lon: 75.745982560 });
   const [zoom, setZoom] = useState(19);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const [draggingId, setDraggingId] = useState<number | string | null>(null);
   const [dragCoords, setDragCoords] = useState<{ id: number | string; lat: number; lon: number } | null>(null);
@@ -143,15 +143,13 @@ export const FallbackMap: React.FC<FallbackMapProps> = ({
     setDraggingId(null);
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.toLowerCase();
-    if (query.includes('jaipur')) {
-      setCenter({ lat: 26.911490938, lon: 75.745982560 });
-    } else if (query.includes('dubai')) {
-      setCenter({ lat: 25.197197, lon: 55.274376 });
-    } else if (query.includes('udaipur')) {
-      setCenter({ lat: 24.585445, lon: 73.712479 });
+  const handleSelectSearchResult = (result: SearchResult) => {
+    setCenter({ lat: result.lat, lon: result.lon });
+    setZoom(result.zoom);
+    if (result.type === 'object' && result.objectId !== undefined) {
+      onSelectObject(result.objectId);
+    } else if (result.type === 'building' && result.buildingId !== undefined) {
+      onSelectBuilding(result.buildingId);
     }
   };
 
@@ -191,16 +189,11 @@ export const FallbackMap: React.FC<FallbackMapProps> = ({
       />
 
       <div className="absolute top-4 right-4 z-20 flex items-center space-x-2">
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search location (e.g. Jaipur Office)..."
-            className="bg-dark-800/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 w-64 shadow-xl backdrop-blur-md"
-          />
-        </form>
+        <MapSearchBar
+          objects={objects}
+          buildings={buildings}
+          onSelectLocation={handleSelectSearchResult}
+        />
 
         <div className="flex items-center space-x-1 bg-dark-800/90 border border-slate-700/80 rounded-xl p-1 shadow-xl backdrop-blur-md">
           <button
